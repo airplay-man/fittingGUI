@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Imawaka Hiroki (Kitagawa Lab) < u801286h@ecs.osaka-u.ac.jp >'
-
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
