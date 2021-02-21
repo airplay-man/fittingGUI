@@ -68,7 +68,7 @@ class Application():
 
             self.popup_flags:
                 ポップアップウィンドウtk.Toplevelを連打できないようにする
-                要素は前から[openボタン、multigraphボタン、viewボタン、色選択ボタン]を押した時に出てくる奴
+                要素は前から[openボタン、multidataボタン、viewボタン、色選択ボタン]を押した時に出てくる奴
         '''
         self.master = master
         self.master.geometry("1300x1000")
@@ -331,16 +331,12 @@ class Application():
 
         note
             buttonframes:ボタンを貼り付けるフレーム
-            self.openbuttons:新規ファイルを選ぶボタン
-            self.reloadbuttons:設定の変更を適用するボタン
-            self.multigraphbuttons:複数のグラフを合わせるボタン
-            self.viewbuttons:色や線の形式などを変更するボタン
         '''
         buttonframes = tkima.Frame(self.pageframes[self.pagenum-1], row=11, column=1, columnspan=2)
         tkima.grid_config(buttonframes, clist=[[3, 'minsize', 50]])
         tkima.Button(buttonframes, text="OPEN", command=self.fitting, row=0, column=0)
         tkima.Button(buttonframes, text="RELOAD", command=self.reload, row=0, column=1)
-        tkima.Button(buttonframes, text="MASA", command=self.multigraph_start, row=0, column=2)
+        tkima.Button(buttonframes, text="SYNTH", command=self.multidata_start, row=0, column=2)
         tkima.Button(buttonframes, text="view", command=self.viewsettings, row=0, column=4)
 
     def set_viewsettings(self):
@@ -793,22 +789,25 @@ class Application():
         指定した関数に必要な数だけ初期値入力欄を作成
         ある関数で使用した初期値のセットは、同じ関数ならば別のページの初期値として使われる
         '''
-        if len(self.initparamentries[self.cp-1]) != 0:
-            for i in range(len(self.initparamentries[self.cp-1])):
-                self.initparamentries[self.cp-1][i].destroy()
-        tkima.frameclear(self.initparamframes[self.cp-1])
+        k = self.cp-1
+        if len(self.initparamentries[k]) != 0:
+            for i in range(len(self.initparamentries[k])):
+                self.initparamentries[k][i].destroy()
+        tkima.frameclear(self.initparamframes[k])
 
         dummy = []
-        if self.cf[self.cp-1] == 4:
-            num = self.degrees[self.cp-1] + 1
+        if self.cf[k] == 4:
+            num = self.degrees[k] + 1
         else:
-            num = len(self.initparams[self.cf[self.cp-1]])
+            num = len(self.initparams[self.cf[k]])
         for i in range(num):
-            entry = tkima.Entry(self.initparamframes[self.cp-1], grid=False, width=5, init=self.initparams[self.cf[self.cp-1]][i], list=dummy)
-        self.initparamentries[self.cp-1] = dummy
+            entry = tkima.Entry(self.initparamframes[k], grid=False, width=5, init=self.initparams[self.cf[k]][i], list=dummy)
+        self.initparamentries[k] = dummy
 
+        if self.funccomboxes[k].get() == '(No fitting)':
+            return
         for i in range(num):
-            self.grid_multirow(index=i, threshold=3, startcolumn=0, startrow=0, children=[tk.Label(self.initparamframes[self.cp-1], text=WHATPARAM[i]), self.initparamentries[self.cp-1][i]])
+            self.grid_multirow(index=i, threshold=3, startcolumn=0, startrow=0, children=[tk.Label(self.initparamframes[k], text=WHATPARAM[i]), self.initparamentries[k][i]])
 
     def changedegreecombo(self, event):
         '''
@@ -888,7 +887,7 @@ class Application():
         #結果表示
         self.show_fittingresults_onGUI()
 
-    def multigraph_start(self):
+    def multidata_start(self):
         '''
         複数のグラフを合わせて表示するボタンを押したら呼び出される
         ここではどのページのグラフを合わせるかを選択する
@@ -918,9 +917,9 @@ class Application():
             txt = "page " + str(i+1) +" ( " + self.titles[i] + " )"
             tkima.Checkbutton(self.whichpagewindow, text=txt, variable=self.graphbooleanvars[i], list=self.graphchkbuttons, row=r, column=0)
             r += 1
-        tkima.Button(self.whichpagewindow, text='OK', command=self.multigraph(pages), row=self.pagenum)
+        tkima.Button(self.whichpagewindow, text='OK', command=self.multidata(pages), row=self.pagenum)
 
-    def multigraph(self, pages):
+    def multidata(self, pages):
         '''
         note
             self.usepage[]:どのページを用いるかのインデックスが入る(0から始まるので注意)
@@ -938,12 +937,12 @@ class Application():
                 print("no page is selected")
                 return
 
-            self.multigraph_main(flag=False)
+            self.multidata_main(flag=False)
         return x
 
-    def multigraph_main(self, flag):
+    def multidata_main(self, flag):
         '''
-        self.multigraph()で使用
+        self.multidata()で使用
         選んだページのデータ・表示設定などを反映して合わせて表示する
         x,yの範囲はその中での最大範囲を取らせる(あとで変更可)
         flagは、reloadの時True
@@ -1069,7 +1068,7 @@ class Application():
         self.dirs[self.cp-1] = self.dirs[original_page]
         self.titlestrs[self.cp-1].set(original_file)
 
-        self.multigraph_main(flag=False)
+        self.multidata_main(flag=False)
 
     def reload(self):
         '''
@@ -1082,7 +1081,7 @@ class Application():
         if self.multidata_flags[self.cp-1] == False:
             self.fitting(flag=True)
         elif self.multidata_flags[self.cp-1]:
-            self.multigraph_main(flag=True)
+            self.multidata_main(flag=True)
 
     def execute_fitting(self):
         k = self.cp-1
