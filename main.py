@@ -38,9 +38,9 @@ PATH = os.path.abspath(os.path.dirname(__file__))
 FUNC = [cal.SaturationCurve, cal.InversionCurve, cal.BuildUpCurve, cal.Rabi, cal.Ndegree, None, cal.Gaussian, cal.Sin]
 FUNC_NAMES = ("SaturationCurve", "InversionCurve", "BuildUpCurve", "Rabi", "Ndegree", "(No fitting)", "Gaussian", "Sin")
 FUNC_FOMULA = [ "a * exp(-x/b)", "a * exp(-x/b) + c", "a * (1 - exp(-x/b))", "a * exp(-x/b) * sin(c*x)", "ax^(n) + bx^(n-1) + ...",
-                "-", "(1/sqrt[2*pi*a]) * exp(-(x-b)^2/2a^2)", "a * sin(b*x + c) + d"]
+                "-", "(1/sqrt[2*pi*a^2]) * exp(-(x-b)^2/2a^2)", "a * sin(b*x + c) + d"]
 WHATPARAM = ["a:", "b:", "c:", "d:", "e:", "f:", 'g:', 'h:']
-INITPARAMS = [np.array([1, 1]), np.array([1, 1, 0]), np.array([1, 1]), np.array([1, 1, 1]), np.array([1, 1, 1, 1, 1, 1, 1]), np.array([0, 0]), np.array([1, 1]), np.array([1, 1, 0, 0])]
+INITPARAMS = [np.array([1, 1]), np.array([1, 1, 0]), np.array([1, 1]), np.array([1, 1, 1]), np.array([1, 1, 1, 1, 1, 1, 1]), np.array([0, 0]), np.array([1, 0]), np.array([1, 1, 0, 0])]
 
 MARKER = ("o", ".", ",","None", "v", ">", "<", "^", "+", "x", '*', '|', "_", "D", "d", "h", "H", "p", "8", "1", "2", "3", "4")
 LINESTYLE = ('solid', 'dashed', 'dashdot', 'dotted')
