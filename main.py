@@ -35,6 +35,7 @@ from module import tkintertool_ima as tkima
 
 PATH = os.path.abspath(os.path.dirname(__file__))
 
+FUNC = [cal.SaturationCurve, cal.InversionCurve, cal.BuildUpCurve, cal.Rabi, cal.Ndegree, None, cal.Gaussian, cal.Sin]
 FUNC_NAMES = ("SaturationCurve", "InversionCurve", "BuildUpCurve", "Rabi", "Ndegree", "(No fitting)", "Gaussian", "Sin")
 FUNC_FOMULA = [ "a * exp(-x/b)", "a * exp(-x/b) + c", "a * (1 - exp(-x/b))", "a * exp(-x/b) * sin(c*x)", "ax^(n) + bx^(n-1) + ...",
                 "-", "(1/sqrt[2*pi*a]) * exp(-(x-b)^2/2a^2)", "a * sin(b*x + c) + d"]
@@ -488,9 +489,6 @@ class Application():
             self.viewsetting_multidata()
             m = 8
         tkima.Button(self.viewsettingwindow, text="OK", command=self.viewsettingwindow_okbutton_pushed, row=m, column=1)
-        print(self.files)
-        print(self.titles)
-        print(self.dirs)
 
     def viewsetting_singledata(self):
         '''
@@ -753,8 +751,7 @@ class Application():
             if type == 'fitting':
                 self.fittingsettings[self.cp-1][0] = COLORS[index]
                 self.fittingsettingwidgets[0].config(bg=COLORdict[COLORS[index]], text=COLORS[index])
-            for child in self.colormapwindow.winfo_children():
-                child.destroy()
+            tkima.frameclear(self.colormapwindow)
             self.colormapwindow.destroy()
         return x
 
@@ -776,7 +773,7 @@ class Application():
                 tkima.Label(self.degreeframes[index], text="N", row=0, column=0)
                 self.degreecombo = tkima.Combobox(self.degreeframes[index], value=('1', '2', '3', '4', '5', '6'), width=3, init=str(self.degrees[index]), row=0, column=1)
                 self.degreecombo.bind("<<ComboboxSelected>>", self.changedegreecombo)
-            '''if you add a function（###をいじる）
+            '''if you add a function（何か特別なことあれば）
             elif k == ###関数ナンバー###:
                 hogehoge
             '''
@@ -800,8 +797,7 @@ class Application():
             num = self.degrees[k] + 1
         else:
             num = len(self.initparams[self.cf[k]])
-        for i in range(num):
-            entry = tkima.Entry(self.initparamframes[k], grid=False, width=5, init=self.initparams[self.cf[k]][i], list=dummy)
+        dummy = [tkima.Entry(self.initparamframes[k], grid=False, width=5, init=self.initparams[self.cf[k]][i]) for i in range(num)]
         self.initparamentries[k] = dummy
 
         if self.funccomboxes[k].get() == '(No fitting)':
@@ -1086,27 +1082,19 @@ class Application():
     def execute_fitting(self):
         k = self.cp-1
         fnc = self.cf[k]
-        if fnc == 0:
-            popt, pcov, perr = cal.CurveFitting(cal.SaturationCurve, self.initparams[fnc], self.datas[k])
-        elif fnc == 1:
-            popt, pcov, perr = cal.CurveFitting(cal.InversionCurve, self.initparams[fnc], self.datas[k])
-        elif fnc == 2:
-            popt, pcov, perr = cal.CurveFitting(cal.BuildUpCurve, self.initparams[fnc], self.datas[k])
-        elif fnc == 3:
-            popt, pcov, perr = cal.CurveFitting(cal.Rabi, self.initparams[fnc], self.datas[k])
+        if fnc == 5:
+            popt, pcov, perr = None, None, None
         elif fnc == 4:
             self.degrees[self.cp-1] = int(self.degreecombo.get())
             popt, pcov, perr = cal.CurveFitting(cal.Ndegree(self.degrees[k]), self.initparams[fnc][:(self.degrees[k]+1)], self.datas[k])
-        elif fnc == 5:
-            popt, pcov, perr = None, None, None
-        elif fnc == 6:
-            popt, pcov, perr = cal.CurveFitting(cal.Gaussian, self.initparams[fnc], self.datas[k])
-        elif fnc == 7:
-            popt, pcov, perr = cal.CurveFitting(cal.Sin, self.initparams[fnc], self.datas[k])
-        '''if you add a function（###をいじる）
+        else:
+            popt, pcov, perr = cal.CurveFitting(FUNC[fnc], self.initparams[fnc], self.datas[k])
+
+        '''if you add a function（elseでカバーできない時(引数の数が変わる時)）
         elif fnc == ###関数ナンバー###:
             popt, pcov, perr = cal.CurveFitting(cal.###関数###, self.initparams[fnc], self.datas[k])
         '''
+
         return popt, pcov, perr
 
     def set_canvases(self, fig):
@@ -1245,23 +1233,13 @@ class Application():
                 self.datas[self.cp-1] = np.delete(self.datas[self.cp-1], i, axis=0)
 
     def cal_ydata(self, i):
-        if self.cf[i] == 0:
-            return cal.SaturationCurve(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
-        elif self.cf[i] == 1:
-            return cal.InversionCurve(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
-        elif self.cf[i] == 2:
-            return cal.BuildUpCurve(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
-        elif self.cf[i] == 3:
-            return cal.Rabi(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
+        if self.cf[i] == 5:
+            return []
         elif self.cf[i] == 4:
             return cal.Ndegree(self.degrees[i])(np.linspace(self.xstart, self.xend, 100), *self.popts[i])
-        elif self.cf[i] == 5:
-            return []
-        elif self.cf[i] == 6:
-            return cal.Gaussian(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
-        elif self.cf[i] == 7:
-            return cal.Sin(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
-        '''if you add a function（###をいじる）
+        else:
+            return FUNC[self.cf[i]](np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
+        '''if you add a function（elseでカバーできない時(引数の数が変わる時)）
         elif self.cf[i] == ###関数ナンバー###:
             return cal.###関数###(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
         '''
