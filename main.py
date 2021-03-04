@@ -113,7 +113,7 @@ class Application():
         self.pageicons = []
         self.multidata_flags = []
         self.graphbooleanvars = []
-        self.popup_flags = [False, False, False, False]
+        self.popup_flags = [False] * 4
         self.degreeframes = []
         self.usepage = []
 
@@ -923,10 +923,7 @@ class Application():
         def x():
             self.multidata_flags[self.cp-1] = True
 
-            u = []
-            for i in pages:
-                if self.graphbooleanvars[i].get() == True:
-                    u.append(i)
+            u = [i for i in pages if self.graphbooleanvars[i].get()]
             self.usepage[self.cp-1] = u
             self.whichpagewindow.destroy()
             if u == []:
