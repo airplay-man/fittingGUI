@@ -405,7 +405,7 @@ class Application():
 
         self.titles[self.cp-1] = os.path.splitext(os.path.basename(self.files[self.cp-1]))[0]
         self.dirs[self.cp-1] = os.path.dirname(self.files[self.cp-1])
-        self.datas[self.cp-1] = np.genfromtxt(self.files[self.cp-1], delimiter='\t')
+        self.datas[self.cp-1] = np.genfromtxt(self.files[self.cp-1])
 
     def changepage(self, index=None):
         '''
