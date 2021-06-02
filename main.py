@@ -23,14 +23,14 @@ from module import calculation as cal
 from module import graph as graph
 from module import tkintertool_ima as tkima
 
-'''if you add a function
+'''関数の追加
 
-1.  add it to FUNC_NAMES and FUNC_FOMULA
-2.  add its initparams to INITPARAMS
-3.  remember funcnumber as its index in FUNC_NAMES etc.
+1.  FUNC_NAMES と FUNC_FOMULA に追加
+2.  INITPARAMS にパラメータの初期値を追加
+3.  FUNC_NAMES 等より、配列のインデックスが表す「関数ナンバー」を覚える
     (ex. Rabi:3, Sin:7)
-4.  search "if you add a function" and follow senteces
-5.  write the function into module/calculation
+4.  "関数の追加" を検索し、適宜文を挿入(関数の引数の形式から変わらない限り、特に変更はいらない)
+5.  module/calculation に実際の関数を記述
 '''
 
 PATH = os.path.abspath(os.path.dirname(__file__))
@@ -770,10 +770,11 @@ class Application():
             self.cf[index] = k
             self.func_fomula_strings[index].set(FUNC_FOMULA[k])
             if k == 4:
+                # N時間数の時は、上の方にあるself.degreeframes[index]というFrameに、次数を指定するためのComboboxを表示
                 tkima.Label(self.degreeframes[index], text="N", row=0, column=0)
                 self.degreecombo = tkima.Combobox(self.degreeframes[index], value=('1', '2', '3', '4', '5', '6'), width=3, init=str(self.degrees[index]), row=0, column=1)
                 self.degreecombo.bind("<<ComboboxSelected>>", self.changedegreecombo)
-            '''if you add a function（何か特別なことあれば）
+            '''関数の追加（何か特別なことあれば）
             elif k == ###関数ナンバー###:
                 hogehoge
             '''
@@ -1080,14 +1081,17 @@ class Application():
         k = self.cp-1
         fnc = self.cf[k]
         if fnc == 5:
+            # no fitting
             popt, pcov, perr = None, None, None
         elif fnc == 4:
+            # N時間数はNの値によって使う引数の数が変わるので
             self.degrees[self.cp-1] = int(self.degreecombo.get())
             popt, pcov, perr = cal.CurveFitting(cal.Ndegree(self.degrees[k]), self.initparams[fnc][:(self.degrees[k]+1)], self.datas[k])
         else:
+            # それ以外の関数は素直に実行するだけ
             popt, pcov, perr = cal.CurveFitting(FUNC[fnc], self.initparams[fnc], self.datas[k])
 
-        '''if you add a function（elseでカバーできない時(引数の数が変わる時)）
+        '''関数の追加(稀だけど引数の形式が変わる時)
         elif fnc == ###関数ナンバー###:
             popt, pcov, perr = cal.CurveFitting(cal.###関数###, self.initparams[fnc], self.datas[k])
         '''
@@ -1174,10 +1178,12 @@ class Application():
             if self.funccomboxes[k].get() == 'Gaussian':
                 print('    a^2:'+str(self.popts[k][0]**2))
                 print('    (a^2=variance, b=average)')
-            '''if you add a function（関数によって何かprintしたいものがあれば）
+
+            '''関数の追加（関数によって何かprintしたいものがあれば）
             if self.funccomboxes[k].get() == '###関数名###':
                 print('    hogehoge')
             '''
+            
             if self.funccomboxes[k].get() != '(No fitting)':
                 print('    -----------------------')
         elif self.multidata_flags[k]:
@@ -1231,12 +1237,15 @@ class Application():
 
     def cal_ydata(self, i):
         if self.cf[i] == 5:
+            # no fitting
             return []
         elif self.cf[i] == 4:
+            # N時間数はNの値によって使う引数の数が変わるので
             return cal.Ndegree(self.degrees[i])(np.linspace(self.xstart, self.xend, 100), *self.popts[i])
         else:
+            # それ以外の関数は素直に実行するだけ
             return FUNC[self.cf[i]](np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
-        '''if you add a function（elseでカバーできない時(引数の数が変わる時)）
+        '''関数の追加(稀だけど引数の形式が変わる時)
         elif self.cf[i] == ###関数ナンバー###:
             return cal.###関数###(np.linspace(self.xstart, self.xend, 100) ,*self.popts[i])
         '''
