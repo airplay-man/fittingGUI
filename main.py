@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
 
 """
-for some versions
-    delete:
+人によっては
+    コメントアウト:
         plt.rcParams["legend.edgecolor"] = 'black'
-    overwrite:
+    変更:
         NavigationToolbar2Tk -> NavigationToolbar2TkAgg
+        (2箇所くらい?)
+"""
+"""
+関数の追加
+
+1.  FUNC_NAMES と FUNC_FOMULA に追加
+2.  INITPARAMS にパラメータの初期値を追加
+3.  FUNC_NAMES 等より、配列のインデックスが表す「関数ナンバー」を覚える
+    (ex. Rabi:3, Sin:7)
+4.  "関数の追加" を検索し、適宜文を挿入(関数の引数の形式から変わらない限り、特に変更はいらない)
+5.  module/calculation に実際の関数を記述
 """
 
 import numpy as np
@@ -22,16 +33,6 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from module import calculation as cal
 from module import graph as graph
 from module import tkintertool_ima as tkima
-
-'''関数の追加
-
-1.  FUNC_NAMES と FUNC_FOMULA に追加
-2.  INITPARAMS にパラメータの初期値を追加
-3.  FUNC_NAMES 等より、配列のインデックスが表す「関数ナンバー」を覚える
-    (ex. Rabi:3, Sin:7)
-4.  "関数の追加" を検索し、適宜文を挿入(関数の引数の形式から変わらない限り、特に変更はいらない)
-5.  module/calculation に実際の関数を記述
-'''
 
 PATH = os.path.abspath(os.path.dirname(__file__))
 
@@ -52,7 +53,7 @@ COLORS = graph.COLORS
 plt.rcParams["xtick.direction"] = "in"
 plt.rcParams["ytick.direction"] = "in"
 plt.rcParams["legend.fancybox"] = False
-# plt.rcParams["legend.edgecolor"] = 'black'
+# plt.rcParams["legend.edgecolor"] = 'black' # 凡例の枠の色を黒くするものだが、人によってできない
 
 class Application():
     def __init__(self, master=None):
@@ -77,6 +78,7 @@ class Application():
         self.files = []
         self.datas = []
         self.titles = []
+        self.lastdir = PATH
 
         self.pagenum = 1
         self.cp = 1
@@ -396,7 +398,8 @@ class Application():
         self.popup_flags[0] = True
 
         fTyp = [("", "*.dat *.txt")]
-        self.files[self.cp-1] = dialog.askopenfilename(initialdir=self.dirs[self.cp-1], filetypes=fTyp)
+        # self.files[self.cp-1] = dialog.askopenfilename(initialdir=self.dirs[self.cp-1], filetypes=fTyp)
+        self.files[self.cp-1] = dialog.askopenfilename(initialdir=self.lastdir, filetypes=fTyp)
 
         self.popup_flags[0] = False
         if self.files[self.cp-1] == '':
@@ -883,6 +886,8 @@ class Application():
         self.set_canvases(fig)
         #結果表示
         self.show_fittingresults_onGUI()
+
+        self.lastdir = self.dirs[k]
 
     def multidata_start(self):
         '''
