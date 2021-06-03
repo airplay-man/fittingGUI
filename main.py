@@ -28,13 +28,21 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.filedialog as dialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
-
-from module import calculation as cal
-from module import graph as graph
-from module import tkintertool_ima as tkima
+try:
+    from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+except:
+    from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 
 PATH = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.append(PATH+'/module')
+
+# from module import calculation as cal
+# from module import graph as graph
+# from module import tkintertool_ima as tkima
+import calculation as cal
+import graph as graph
+import tkintertool_ima as tkima
 
 FUNC = [cal.SaturationCurve, cal.InversionCurve, cal.BuildUpCurve, cal.Rabi, cal.Ndegree, None, cal.Gaussian, cal.Sin]
 FUNC_NAMES = ("SaturationCurve", "InversionCurve", "BuildUpCurve", "Rabi", "Ndegree", "(No fitting)", "Gaussian", "Sin")
