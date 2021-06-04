@@ -35,14 +35,14 @@ except:
 
 PATH = os.path.abspath(os.path.dirname(__file__))
 
+# 自作moduleのインポート
 sys.path.append(PATH+'/module')
-
-# from module import calculation as cal
-# from module import graph as graph
-# from module import tkintertool_ima as tkima
 import calculation as cal
 import graph as graph
 import tkintertool_ima as tkima
+# from module import calculation as cal
+# from module import graph as graph
+# from module import tkintertool_ima as tkima
 
 FUNC = [cal.SaturationCurve, cal.InversionCurve, cal.BuildUpCurve, cal.Rabi, cal.Ndegree, None, cal.Gaussian, cal.Sin]
 FUNC_NAMES = ("SaturationCurve", "InversionCurve", "BuildUpCurve", "Rabi", "Ndegree", "(No fitting)", "Gaussian", "Sin")
@@ -344,11 +344,12 @@ class Application():
             buttonframes:ボタンを貼り付けるフレーム
         '''
         buttonframes = tkima.Frame(self.pageframes[self.pagenum-1], row=11, column=1, columnspan=2)
-        tkima.grid_config(buttonframes, clist=[[3, 'minsize', 50]])
+        tkima.grid_config(buttonframes, clist=[[4, 'minsize', 50]])
         tkima.Button(buttonframes, text="OPEN", command=self.fitting, row=0, column=0)
         tkima.Button(buttonframes, text="RELOAD", command=self.reload, row=0, column=1)
         tkima.Button(buttonframes, text="SYNTH", command=self.multidata_start, row=0, column=2)
-        tkima.Button(buttonframes, text="view", command=self.viewsettings, row=0, column=4)
+        tkima.Button(buttonframes, text="STD", command=self.standardization, row=0, column=3)
+        tkima.Button(buttonframes, text="view", command=self.viewsettings, row=0, column=5)
 
     def set_viewsettings(self):
         '''
@@ -866,6 +867,7 @@ class Application():
             self.titlestrs[k].set(self.files[k])
             self.delete_blank_row()
             self.ranges[k] = self.deciderange()
+            self.lastdir = self.dirs[k]
 
         #GUIからレンジなどを取得
         self.get_range()
@@ -894,8 +896,6 @@ class Application():
         self.set_canvases(fig)
         #結果表示
         self.show_fittingresults_onGUI()
-
-        self.lastdir = self.dirs[k]
 
     def multidata_start(self):
         '''
@@ -1089,6 +1089,75 @@ class Application():
             self.fitting(flag=True)
         elif self.multidata_flags[self.cp-1]:
             self.multidata_main(flag=True)
+
+    def standardization(self):
+        '''
+        規格化
+        '''
+        if self.graph_flags[self.cp-1] == False:
+            print("can't reload because NO DATA")
+            return
+        if self.multidata_flags[self.cp-1] == False:
+            beforepage = self.cp-1
+            self._add()
+            k = self.cp-1
+            self.funccomboxes[k].config(state='readonly')
+
+            #レンジの設定
+            self.xstart = float(self.rangeentries[beforepage][0].get())
+            self.xend = float(self.rangeentries[beforepage][1].get())
+            self.ystart = 0
+            self.yend = 1.1
+            self.xunit = self.xunitentries[beforepage].get()
+            self.yunit = self.yunitentries[beforepage].get()
+            self.xlabel = self.xlabelentries[beforepage].get()
+            self.ylabel = self.ylabelentries[beforepage].get()
+            self.rangeentries[k][0].overwrite(str(self.xstart))
+            self.rangeentries[k][1].overwrite(str(self.xend))
+            self.rangeentries[k][2].overwrite(str(self.ystart))
+            self.rangeentries[k][3].overwrite(str(self.yend))
+            self.xunitentries[k].overwrite(self.xunit)
+            self.yunitentries[k].overwrite(self.yunit)
+            self.xlabelentries[k].overwrite(self.xlabel)
+            self.ylabelentries[k].overwrite(self.ylabel)
+
+            #初期値
+            self.get_initparams()
+            #描画したいページにグラフがすでにあれば消す
+            self.delete_graph_if_exists()
+
+            self.dirs[k] = self.dirs[beforepage]
+            self.files[k] = self.files[beforepage]
+            self.titles[k] = self.titles[beforepage]
+            self.datas[k] = self.datas[beforepage].copy()
+            std = max(self.datas[k][:, 1])
+            for i in range(self.datas[k].shape[0]):
+                self.datas[k][i, 1] /= std
+            self.titlestrs[k].set('=page' + str(beforepage+1) + '(standardization)')
+
+            #フィッティング
+            self.popts[k], self.pcovs[k], self.perrs[k] = self.execute_fitting()
+            #誤差計算
+            self.sqrt_of_MSE = cal.calcurate_sqrt_of_MSE(self.cf[k], self.datas[k], self.degrees[k], self.popts[k])
+
+            fig = plt.Figure()
+            ax = fig.add_subplot(111)
+            graph.set_axissettings(ax, self.fontsettings[k], self.xlabel, self.ylabel, self.xunit, self.yunit, self.xstart, self.ystart, self.xend, self.yend)
+            #データを描画
+            graph.plot_scatterdata(ax, self.datas[k], self.scattersettings[k], self.titles[k])
+            #フィッティング結果を描画
+            ydata = self.cal_ydata(k)
+            if self.cf[k] != 5:
+                graph.plot_fittingresult(ax, np.linspace(self.xstart, self.xend, 100), ydata, self.fittingsettings[k])
+            #表示
+            self.print_results()
+            #グラフをGUIに表示
+            self.set_canvases(fig)
+            #結果表示
+            self.show_fittingresults_onGUI()
+            
+        elif self.multidata_flags[self.cp-1]:
+            print('sorry... plz do it on single graph page...')
 
     def execute_fitting(self):
         k = self.cp-1
